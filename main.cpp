@@ -123,7 +123,7 @@ void loadFromFile(const string &filename, POSTS *posts)
     }
 }
 
-void saveToFile(const string &filename, const POSTS &posts)
+void saveToFile(const string &filename, const POSTS posts)
 {
     ofstream file(filename);
     if (!file)
@@ -161,23 +161,26 @@ int main()
         return 1;
     }
 
+    if (listen(ServerSocket, 1) == -1)
+    {
+        close(ServerSocket);
+        cerr << "ERROR: Listen failed to configure ServerSocket" << endl;
+        return 1;
+    }
+
     POSTS posts;
     bool connected = false;
     string lastCommand = "GET";
     int sendIndex = 0;
     int ConnectionSocket = -1;
 
+    loadFromFile("posts.txt", &posts);
+
     do
     {
         if (!connected)
         {
             cout << "Listening for connections..." << endl;
-            if (listen(ServerSocket, 1) == -1)
-            {
-                close(ServerSocket);
-                cerr << "ERROR: Listen failed to configure ServerSocket" << endl;
-                return 1;
-            }
 
             ConnectionSocket = accept(ServerSocket, NULL, NULL);
             if (ConnectionSocket == -1)
@@ -277,6 +280,8 @@ int main()
             connected = false;
         }
     } while (lastCommand != "CLOSE SERVER");
+
+    saveToFile("posts.txt", posts);
 
     close(ConnectionSocket);
     close(ServerSocket);
